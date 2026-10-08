@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media-url";
 import type { AnswerValue } from "../types/question";
 import { designNeutralImage } from "./design-images";
 
@@ -15,9 +16,9 @@ export const finishHotspots = [
 
 // Activate only when the real, camera-aligned assets are supplied.
 export const finishImages: Readonly<Record<string, { src: string; available: boolean }>> = {
-  negro: { src: "/experience/scenes/espacio-diseno-perfiles-negro.webp", available: true },
-  blanco_gris: { src: "/experience/scenes/espacio-diseno-perfiles-metalico.webp", available: true },
-  madera_esp: { src: "/experience/scenes/espacio-diseno-perfiles-especial.webp", available: true },
+  negro: { src: mediaUrl("/experience/scenes/espacio-diseño-negro.webp"), available: true },
+  blanco_gris: { src: mediaUrl("/experience/scenes/espacio-diseño-blanco.webp"), available: true },
+  madera_esp: { src: mediaUrl("/experience/scenes/espacio-diseño-madera.webp"), available: true },
 };
 
 export function finishImageForAnswer(answer: AnswerValue | undefined): string {

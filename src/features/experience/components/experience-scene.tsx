@@ -1,4 +1,5 @@
 import { SecuritySceneOverlay } from "./security-scene-overlay";
+import { useScenePrefetch } from "./use-scene-prefetch";
 import { ExperienceQuestionCards } from "./experience-question-cards";
 import { DesignAestheticOverlay } from "./design-aesthetic-overlay";
 import { DesignSceneImage } from "./design-scene-image";
@@ -32,6 +33,7 @@ interface ExperienceSceneProps {
 }
 
 export function ExperienceScene({ scene, questions, answers, onAnswerChange, groupId, groupProgress, questionProgress, navigation, extraContent }: ExperienceSceneProps) {
+  useScenePrefetch(scene.id);
   const immersive = scene.visualVariant === "immersive";
   const normalizedCards = scene.id === "sala" || scene.id === "salida" ||
     (scene.id === "diseno" && ["uv", "funcionalidad"].includes(questions[0]?.id));

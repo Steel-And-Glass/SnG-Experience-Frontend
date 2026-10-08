@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media-url";
 export interface ExperienceAudioConfig {
   source?: string;
   baseVolume: number;
@@ -5,7 +6,7 @@ export interface ExperienceAudioConfig {
 }
 
 export const experienceAudioConfig: ExperienceAudioConfig = {
-  source: "/experience/audio/ambient.mp3",
+  source: mediaUrl("/experience/audio/ambient.mp3"),
   baseVolume: 1,
   loop: true,
 };
