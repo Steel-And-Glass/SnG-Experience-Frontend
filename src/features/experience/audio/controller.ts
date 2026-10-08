@@ -44,20 +44,30 @@ export class ExperienceAudioController {
     this.update({ enabled: false, starting: false, failed: true });
   };
 
-  // Call only from an explicit user action. No media element exists before this.
+  // Prepare the same media element that enable() will play, without autoplay.
+  prepare() {
+    if (!this.config.source || this.audio || typeof Audio === "undefined") return;
+    this.audio = new Audio();
+    this.audio.autoplay = false;
+    this.audio.preload = "auto";
+    this.audio.loop = this.config.loop;
+    this.audio.volume = this.state.effectiveVolume;
+    this.audio.muted = this.state.muted;
+    this.audio.addEventListener("error", this.onError);
+    this.audio.src = this.config.source;
+    this.update({ initialized: true });
+    this.audio.load();
+  }
+
+  // Playback still requires an explicit user action.
   async enable() {
     if (!this.config.source || this.state.starting) return;
     const generation = ++this.generation;
     this.update({ starting: true, failed: false });
     try {
-      if (!this.audio) {
-        this.audio = new Audio();
-        this.audio.preload = "none";
-        this.audio.loop = this.config.loop;
-        this.audio.addEventListener("error", this.onError);
-        this.audio.src = this.config.source;
-        this.update({ initialized: true });
-      }
+      this.prepare();
+      if (!this.audio) throw new Error("Audio is unavailable");
+      if (this.audio.error) this.audio.load();
       this.audio.volume = this.state.effectiveVolume;
       this.audio.muted = this.state.muted;
       await this.audio.play();

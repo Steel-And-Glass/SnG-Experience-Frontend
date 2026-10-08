@@ -12,7 +12,10 @@ export function ExperienceAudioProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     controller.setBaseVolume(experienceAudioConfig.baseVolume);
   }, [controller]);
-  useEffect(() => () => controller.dispose(), [controller]);
+  useEffect(() => {
+    controller.prepare();
+    return () => controller.dispose();
+  }, [controller]);
   return <AudioContext.Provider value={controller}>{children}</AudioContext.Provider>;
 }
 

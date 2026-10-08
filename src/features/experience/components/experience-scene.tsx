@@ -64,6 +64,7 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
               alt=""
               fill
               sizes="100vw"
+              preload={scene.id === "exterior"}
               className="object-cover"
             />}
           </div>
