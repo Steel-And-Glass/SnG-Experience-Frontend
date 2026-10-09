@@ -1,8 +1,7 @@
 import { useId, useState } from "react";
 import styles from "./project-documents.module.css";
 
-const extensions = ["pdf", "dwg", "dxf", "ifc", "rvt", "doc", "docx", "xls", "xlsx", "png", "jpg", "jpeg", "zip"];
-const maxSize = 25 * 1024 * 1024;
+import { MAX_PROJECT_FILES, MAX_PROJECT_FILE_SIZE_BYTES, PROJECT_FILE_ACCEPT, projectFilesError } from "../submission/file-policy";
 const sameFile = (a: File, b: File) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
 
 export function ProjectDocuments({ files, onChange }: { files: readonly File[]; onChange: (files: File[]) => void }) {
@@ -13,22 +12,22 @@ export function ProjectDocuments({ files, onChange }: { files: readonly File[]; 
     const rejected: string[] = [];
     for (const file of incoming) {
       if (next.some((item) => sameFile(item, file))) continue;
-      if (!extensions.includes(file.name.split(".").pop()?.toLowerCase() ?? "") || file.size > maxSize || file.size === 0 || next.length >= 5) {
-        rejected.push(file.name);
-      } else next.push(file);
+      const reason = projectFilesError([...next, file]);
+      if (reason) rejected.push(reason.startsWith(`${file.name}:`) ? reason : `${file.name}: ${reason}`);
+      else next.push(file);
     }
     onChange(next);
-    setError(rejected.length ? `No se añadieron: ${rejected.join(", ")}. Revisa el formato, el tamaño y el límite de 5 archivos.` : "");
+    setError(rejected.join(" "));
   }
   return <div className={styles.documents}>
     <label htmlFor={id} className={styles.dropzone} onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => { event.preventDefault(); add(Array.from(event.dataTransfer.files)); }}>
       <span>Adjuntar planos y documentos</span>
       <span className={styles.help}>Arrástralos aquí o selecciona archivos</span>
-      <input id={id} type="file" multiple accept={extensions.map((extension) => `.${extension}`).join(",")}
+      <input id={id} type="file" multiple accept={PROJECT_FILE_ACCEPT}
         aria-describedby={`${id}-help`} onChange={(event) => { add(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
     </label>
-    <p id={`${id}-help`} className={styles.help}></p>
+    <p id={`${id}-help`} className={styles.help}>PDF, XLSX, PNG o JPG/JPEG. Máximo {MAX_PROJECT_FILES} archivos, {MAX_PROJECT_FILE_SIZE_BYTES / 1024 / 1024} MB por archivo.</p>
     {error && <p role="alert" className={styles.help}>{error}</p>}
     <ul className={styles.list} aria-label="Archivos seleccionados">
       {files.map((file, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`}>

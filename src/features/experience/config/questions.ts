@@ -170,5 +170,6 @@ export const questions: readonly Question[] = [
     id: "origen_otro", sceneId: "salida", order: 5.1, type: "text", required: false,
     text: "¿De dónde?", placeholder: "¿De dónde?",
     condition: { questionId: "origen", operator: "equals", value: "otro" },
+    clearWhenHidden: true,
   },
 ];
