@@ -1,7 +1,7 @@
 import { useId, useState } from "react";
 import styles from "./project-documents.module.css";
 
-import { MAX_PROJECT_FILES, MAX_PROJECT_FILE_SIZE_BYTES, PROJECT_FILE_ACCEPT, projectFilesError } from "../submission/file-policy";
+import { MAX_PROJECT_FILES, MAX_PROJECT_FILE_SIZE_BYTES, PROJECT_FILE_ACCEPT, PROJECT_DOCUMENT_REQUIRED, projectFilesError } from "../submission/file-policy";
 const sameFile = (a: File, b: File) => a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
 
 export function ProjectDocuments({ files, onChange }: { files: readonly File[]; onChange: (files: File[]) => void }) {
@@ -28,6 +28,7 @@ export function ProjectDocuments({ files, onChange }: { files: readonly File[]; 
         aria-describedby={`${id}-help`} onChange={(event) => { add(Array.from(event.target.files ?? [])); event.target.value = ""; }} />
     </label>
     <p id={`${id}-help`} className={styles.help}>PDF, XLSX, PNG o JPG/JPEG. Máximo {MAX_PROJECT_FILES} archivos, {MAX_PROJECT_FILE_SIZE_BYTES / 1024 / 1024} MB por archivo.</p>
+    {files.length === 0 && <p role="status" className={styles.help}>{PROJECT_DOCUMENT_REQUIRED}</p>}
     {error && <p role="alert" className={styles.help}>{error}</p>}
     <ul className={styles.list} aria-label="Archivos seleccionados">
       {files.map((file, index) => <li key={`${file.name}-${file.size}-${file.lastModified}`}>

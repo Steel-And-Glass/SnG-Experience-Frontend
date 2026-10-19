@@ -2,7 +2,7 @@ import { questions } from "../config/questions";
 import { isAnswerValid, isQuestionVisible } from "../types/question";
 import type { Answers, AnswerValue } from "../types/question";
 import { advisorCodeFor } from "./advisor-codes";
-import { projectFileContentType, projectFilesError } from "./file-policy";
+import { normalizeProjectFile, projectFilesError } from "./file-policy";
 import { EXPERIENCE_SUBMISSION_SOURCE, PUBLIC_EXPERIENCE_SCHEMA_VERSION } from "./experience-submission";
 import type { ExperienceSubmissionDraft } from "./experience-submission";
 
@@ -47,6 +47,7 @@ export function buildExperienceSubmission({ submissionId, answers, files }: Buil
   if (!advisorCode) throw new ExperienceSubmissionError("asesor", "Unknown advisor; update the explicit mapping.");
   const fileError = projectFilesError(files);
   if (fileError) throw new ExperienceSubmissionError("files", fileError);
+  const normalizedFiles = files.map(normalizeProjectFile);
   return {
     payload: {
       submissionId,
@@ -60,8 +61,8 @@ export function buildExperienceSubmission({ submissionId, answers, files }: Buil
         ...(optionalText("project_documents") ? { notes: optionalText("project_documents") } : {}),
       },
       answers: snapshot,
-      files: files.map((file) => ({ fileName: file.name, contentType: projectFileContentType(file)!, sizeBytes: file.size })),
+      files: normalizedFiles.map((file) => ({ fileName: file.name, contentType: file.type, sizeBytes: file.size })),
     },
-    files: [...files],
+    files: normalizedFiles,
   };
 }
