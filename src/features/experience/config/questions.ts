@@ -28,6 +28,12 @@ export const questions: readonly Question[] = [
     ]),
   },
   { id: "nombre", sceneId: "exterior", order: 2, type: "text", required: true, text: "Tu nombre completo", placeholder: "Ej. Alejandra Martínez" },
+  { id: "documento_identificacion", sceneId: "exterior", order: 2.1, type: "text", required: true, sameStepAs: "nombre", text: "Documento de identificación", placeholder: "Número de documento o NIT" },
+  {
+    id: "tipo_cliente", sceneId: "exterior", order: 2.2, type: "single-choice", required: true, sameStepAs: "nombre",
+    text: "Tipo de cliente",
+    options: options([["persona", "Persona"], ["empresa", "Empresa"]]),
+  },
   { id: "wa", sceneId: "exterior", order: 3, type: "tel", required: true, text: "Tu WhatsApp", placeholder: "Ej. 300 123 4567", description: "Te enviaremos un resumen de tu perfil de confort." },
   { id: "proyecto", sceneId: "exterior", order: 4, type: "text", required: true, text: "Nombre o descripción del proyecto", placeholder: "Ej. Casa Campestre La Palma / Apto Torre Nórdica" },
   { id: "parcelacion", sceneId: "exterior", order: 5, type: "text", required: false, text: "Parcelación / conjunto (si aplica)", placeholder: "Ej. Parcelación El Refugio" },
@@ -97,7 +103,7 @@ export const questions: readonly Question[] = [
   },
   {
     id: "preferencia_acabado", sceneId: "diseno", order: 3, type: "single-choice", required: true,
-    text: "¿Tienes alguna preferencia definida para el acabado de los perfiles?",
+    text: "¿Tienes alguna preferencia definida para el acabado de los perfiles? Selecciona la opcion que mas te agrade en nuestra paleta de colores ",
     options: options([["negro", "Negro"], ["blanco_gris", "Blanco / gris / metálico"], ["madera_esp", "Madera o acabado especial"], ["con_sng", "Prefiero definirlo con SNG"]]),
   },
   { ...scale, id: "funcionalidad", sceneId: "diseno", order: 4, text: "Facilidad y experiencia de uso" },

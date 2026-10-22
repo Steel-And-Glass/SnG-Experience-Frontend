@@ -140,6 +140,8 @@ El array separado conserva los mismos objetos File y el mismo orden que la metad
   "answers": {
     "asesor": "Andrés Candela",
     "nombre": "Cliente Demo",
+    "documento_identificacion": "DEMO-123456",
+    "tipo_cliente": "persona",
     "wa": "3001234567",
     "proyecto": "Casa Demo",
     "ciudad": "Bucaramanga",
@@ -188,3 +190,7 @@ Experience no infiere líneas comerciales ni crea estas entidades. No implementa
 ## Verificación
 
 El proyecto no tiene runner de tests configurado; no se instala uno en esta fase. El builder está desacoplado de React y del navegador (salvo el generador UUID separado), por lo que puede probarse con inputs y archivos simulados, sin red.
+
+## Datos de identificación en la tarjeta de nombre
+
+`documento_identificacion` (texto obligatorio, conserva ceros iniciales) y `tipo_cliente` (selección obligatoria: `persona` o `empresa`) comparten el paso de `nombre` mediante `sameStepAs`. Se conservan en `answers`; no se añaden campos a `client` ni se altera el transporte.

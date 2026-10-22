@@ -23,6 +23,7 @@ interface QuestionBase {
   placeholder?: string;
   condition?: QuestionCondition;
   clearWhenHidden?: boolean;
+  sameStepAs?: QuestionId;
 }
 
 export type Question = QuestionBase & (
