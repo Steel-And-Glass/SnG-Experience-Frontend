@@ -1,5 +1,7 @@
 "use client";
 
+import { ArrowUpRightIcon } from "./arrow-up-right-icon";
+
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { homeNavigation } from "../config/home-content";
@@ -28,12 +30,12 @@ export function HomeHeader() {
     <nav aria-label="Navegación principal" className={styles.desktopNav}>
       {homeNavigation.map((item) => <Link key={item.href} href={item.href} prefetch={false}>{item.label}</Link>)}
     </nav>
-    <a className={styles.headerCta} href="#contacto">Agendar asesoría <span aria-hidden="true">↗</span></a>
-    <Link className={styles.mobileExperience} href="/experiencia" prefetch={false}>Experiencia ↗</Link>
+    <a className={styles.headerCta} href="#contacto">Agendar asesoría <ArrowUpRightIcon /></a>
+    <Link className={styles.mobileExperience} href="/experiencia" prefetch={false}><span>Experiencia <ArrowUpRightIcon /></span></Link>
     <button ref={toggle} className={styles.menuButton} aria-expanded={open} aria-controls="home-mobile-menu" aria-label={open ? "Cerrar menú" : "Abrir menú"} onClick={() => setOpen(!open)}><span aria-hidden="true">{open ? "Cerrar −" : "Menú +"}</span></button>
     <nav id="home-mobile-menu" aria-label="Navegación móvil" className={styles.mobileNav} hidden={!open}>
-      {homeNavigation.map((item) => <Link key={item.href} href={item.href} prefetch={false} onClick={() => setOpen(false)}>{item.label}<span aria-hidden="true">↗</span></Link>)}
-      <a href="#contacto" onClick={() => setOpen(false)}>Agendar asesoría <span aria-hidden="true">↗</span></a>
+      {homeNavigation.map((item) => <Link key={item.href} href={item.href} prefetch={false} onClick={() => setOpen(false)}>{item.label}<ArrowUpRightIcon /></Link>)}
+      <a href="#contacto" onClick={() => setOpen(false)}>Agendar asesoría <ArrowUpRightIcon /></a>
     </nav>
   </header>;
 }
