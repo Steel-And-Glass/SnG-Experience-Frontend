@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { buildExperienceSubmission, ExperienceSubmissionError } from "../submission/build-experience-submission";
+import { createExperienceSubmissionId, type ExperienceSubmissionDraft } from "../submission/experience-submission";
+import { submitExperience, ExperienceSubmitError } from "../submission/submit-experience";
 import { ProjectDocuments } from "./project-documents";
 import cardStyles from "./experience-cards.module.css";
 import { useQuestionAudioEffect } from "@/features/experience/audio/use-question-audio-effect";
@@ -32,6 +35,10 @@ function ExperienceFlowContent() {
   const [currentGroupId, setCurrentGroupId] = useState(getSceneGroups(orderedScenes[0].id)[0].id);
   const [answers, setAnswers] = useState<Answers>({});
   const [projectFiles, setProjectFiles] = useState<File[]>([]);
+  const [submissionState, setSubmissionState] = useState<"IDLE" | "SUBMITTING" | "SUCCESS" | "ERROR">("IDLE");
+  const [submissionError, setSubmissionError] = useState("");
+  const submissionDraft = useRef<ExperienceSubmissionDraft | null>(null);
+  const submitting = useRef(false);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const currentGroup = questionGroups.find((group) => group.id === currentGroupId)!;
   const currentIndex = orderedScenes.findIndex(
@@ -67,7 +74,8 @@ function ExperienceFlowContent() {
   useQuestionAudioEffect(activeQuestion?.id, activeQuestion ? answers[activeQuestion.id] : undefined);
   const hasPreviousQuestion = singleQuestion && activeQuestionIndex > 0;
   const hasNextQuestion = singleQuestion && activeQuestionIndex < questionSteps.length - 1;
-  const canAdvance = visibleQuestions.every((question) => isAnswerValid(question, answers[question.id]));
+  const canAdvance = visibleQuestions.every((question) => isAnswerValid(question, answers[question.id]))
+    && (!visibleQuestions.some((question) => question.id === "project_documents") || projectFiles.length > 0);
 
   function goBack() {
     if (hasPreviousQuestion) {
@@ -100,6 +108,46 @@ function ExperienceFlowContent() {
       }
       return updated;
     });
+  }
+
+  async function sendProject() {
+    if (submitting.current || submissionState === "SUCCESS" || projectFiles.length === 0) return;
+    submitting.current = true;
+    setSubmissionState("SUBMITTING");
+    try {
+      // Retain the exact payload and File objects after an uncertain network outcome.
+      submissionDraft.current ??= buildExperienceSubmission({
+        submissionId: createExperienceSubmissionId(), answers, files: projectFiles,
+      });
+      await submitExperience(submissionDraft.current);
+      setSubmissionState("SUCCESS");
+    } catch (error) {
+      setSubmissionError(error instanceof ExperienceSubmitError ? error.message
+        : error instanceof ExperienceSubmissionError ? "Revisa las respuestas obligatorias y los documentos antes de enviar tu proyecto."
+        : "No fue posible enviar tu proyecto. Inténtalo nuevamente.");
+      setSubmissionState("ERROR");
+    } finally {
+      submitting.current = false;
+    }
+  }
+
+  if (submissionState !== "IDLE") {
+    return <main lang="es" className="flex min-h-dvh flex-col bg-[#343b37] px-6 py-8 font-sans text-stone-100 sm:px-12">
+      <header className="text-sm">Steel &amp; Glass</header>
+      <section aria-live="polite" aria-atomic="true" aria-busy={submissionState === "SUBMITTING"} className="mx-auto my-auto w-full max-w-xl py-16">
+        <h1 className="text-2xl font-medium sm:text-3xl">{submissionState === "SUCCESS" ? "¡Hemos recibido tu proyecto!" : submissionState === "SUBMITTING" ? "Enviando tu proyecto..." : "No fue posible enviar tu proyecto"}</h1>
+        {submissionState === "SUCCESS" ? <>
+          <p className="mt-6 text-base leading-relaxed text-stone-200">Gracias por compartir la información y los documentos con Steel &amp; Glass. Nuestro equipo continuará con la revisión de tu proyecto.</p>
+          <p className="mt-4 text-sm leading-relaxed text-stone-300">Nos pondremos en contacto contigo para continuar el proceso.</p>
+        </> : submissionState === "ERROR" ? <>
+          <p role="alert" className="mt-6 text-sm leading-relaxed text-stone-200">{submissionError}</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button type="button" onClick={sendProject} className={`${buttonClassName} bg-stone-100 text-stone-900`}>Reintentar</button>
+            <button type="button" onClick={() => { submissionDraft.current = null; setSubmissionState("IDLE"); }} className={`${buttonClassName} border border-white/30`}>Editar y preparar un nuevo envío</button>
+          </div>
+        </> : <p className="mt-6 text-sm text-stone-200">Estamos enviando la información y tus documentos.</p>}
+      </section>
+    </main>;
   }
 
   return (
@@ -142,6 +190,8 @@ function ExperienceFlowContent() {
         >
           Continuar{immersive && <span aria-hidden="true"> →</span>}
         </button>}
+        {activeQuestion?.id === "project_documents" && <button type="button" disabled={!canAdvance}
+          onClick={sendProject} className={`${buttonClassName} bg-stone-800 text-stone-50 enabled:hover:bg-stone-700`}>Enviar proyecto</button>}
       </nav>
           </>
         }

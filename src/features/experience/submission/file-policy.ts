@@ -1,4 +1,5 @@
 export const MAX_PROJECT_FILES = 5;
+export const PROJECT_DOCUMENT_REQUIRED = "Adjunta al menos un documento del proyecto para continuar.";
 export const MAX_PROJECT_FILE_SIZE_BYTES = 20 * 1024 * 1024;
 export const MAX_PROJECT_FILES_TOTAL_SIZE_BYTES = 100 * 1024 * 1024;
 export const PROJECT_FILE_MIME_TYPES = {
@@ -21,11 +22,19 @@ export function projectFileContentType(file: FileMetadata): string | undefined {
 // UX validation only. The backend must verify the actual file contents.
 export function projectFileError(file: FileMetadata): string | undefined {
   if (!projectFileContentType(file)) return "Formato no permitido. Usa PDF, XLSX, PNG o JPG/JPEG.";
+  const canonical = projectFileContentType(file);
+  const aliases: Record<string, readonly string[]> = {
+    "application/pdf": ["application/x-pdf"],
+    "image/jpeg": ["image/jpg", "image/pjpeg"],
+  };
+  if (file.type && file.type !== canonical && file.type !== "application/octet-stream"
+    && !aliases[canonical!]?.includes(file.type)) return "El tipo del archivo no coincide con su extension.";
   if (!Number.isSafeInteger(file.size) || file.size <= 0) return "El archivo está vacío o su tamaño no es válido.";
   if (file.size > MAX_PROJECT_FILE_SIZE_BYTES) return `Máximo ${MAX_PROJECT_FILE_SIZE_BYTES / 1024 / 1024} MB por archivo.`;
 }
 
 export function projectFilesError(files: readonly FileMetadata[]): string | undefined {
+  if (files.length === 0) return PROJECT_DOCUMENT_REQUIRED;
   if (files.length > MAX_PROJECT_FILES) return `Máximo ${MAX_PROJECT_FILES} archivos.`;
   for (const file of files) {
     const error = projectFileError(file);
@@ -34,4 +43,11 @@ export function projectFilesError(files: readonly FileMetadata[]): string | unde
   if (files.reduce((total, file) => total + file.size, 0) > MAX_PROJECT_FILES_TOTAL_SIZE_BYTES) {
     return `Máximo ${MAX_PROJECT_FILES_TOTAL_SIZE_BYTES / 1024 / 1024} MB en total.`;
   }
+}
+
+export function normalizeProjectFile(file: File): File {
+  const error = projectFileError(file);
+  if (error) throw new Error(error);
+  const type = projectFileContentType(file)!;
+  return file.type === type ? file : new File([file], file.name, { type, lastModified: file.lastModified });
 }
