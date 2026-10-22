@@ -1,3 +1,4 @@
+import responsive from "./experience-responsive.module.css";
 import { SecuritySceneOverlay } from "./security-scene-overlay";
 import { useScenePrefetch } from "./use-scene-prefetch";
 import { ExperienceQuestionCards } from "./experience-question-cards";
@@ -53,8 +54,8 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
       ? thermalPreview.tone : thermalTone(thermalAnswer)
     : 0;
   return (
-    <section aria-labelledby={immersive ? undefined : "scene-title"} aria-label={immersive ? scene.title : undefined} className={floatingInteraction || finishQuestion ? "relative min-h-0 flex-1 overflow-hidden" : immersive ? "relative flex min-h-0 flex-1 items-end justify-center overflow-hidden px-3 pt-16 pb-2.5 sm:px-6 sm:pb-4 lg:px-10" : "relative grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,3fr)] gap-3 overflow-hidden px-3 pb-3 sm:px-6 sm:pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:grid-rows-1 lg:gap-10 lg:px-10 lg:py-8"}>
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#343b37]">
+    <section data-scene={scene.id} aria-labelledby={immersive ? undefined : "scene-title"} aria-label={immersive ? scene.title : undefined} className={`${responsive.scene} ${floatingInteraction || finishQuestion ? "relative min-h-0 flex-1 overflow-hidden" : immersive ? "relative flex min-h-0 flex-1 items-end justify-center overflow-hidden px-3 pt-16 pb-2.5 sm:px-6 sm:pb-4 lg:px-10" : "relative grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,3fr)] gap-3 overflow-hidden px-3 pb-3 sm:px-6 sm:pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:grid-rows-1 lg:gap-10 lg:px-10 lg:py-8"}`}>
+      <div data-scene-visual aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#343b37]">
         {scene.backgroundImage ? (
           <div className={immersive ? "relative h-full w-full" : "relative h-[40%] w-full lg:h-full"}>
             {scene.id === designEffect.sceneId ? <DesignSceneImage
@@ -97,8 +98,8 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
         {questions.filter((question) => question.id !== finishQuestionId).map((question) => <QuestionRenderer
           key={question.id} question={question} value={answers[question.id]} variant={scene.visualVariant} layout="dock"
           onChange={(value) => onAnswerChange(question.id, value)} />)}
-      </DesignFinishHotspots> : <div className={floatingInteraction ? (designMoment ? designStyles.cards : styles.cards) : "contents"}>
-      <div className={floatingInteraction ? `${styles.card} ${designMoment ? designStyles.main : ""}` : immersive ? `flex w-full max-w-5xl min-w-0 flex-wrap items-end gap-x-7 gap-y-3 px-4 sm:px-5 py-3.5 sm:py-4 rounded-lg border border-white/10 bg-[#202321]/70 text-stone-100 shadow-md backdrop-blur-sm [color-scheme:dark]` : "flex min-h-0 min-w-0 flex-col overflow-hidden rounded-sm border border-white/30 bg-[#f5f3ee]/98 text-stone-800 shadow-xl [color-scheme:light]"}>
+      </DesignFinishHotspots> : <div data-floating-panels={floatingInteraction ? "true" : undefined} className={floatingInteraction ? (designMoment ? designStyles.cards : styles.cards) : "contents"}>
+      <div data-question-panel className={floatingInteraction ? `${styles.card} ${designMoment ? designStyles.main : ""}` : immersive ? `flex w-full max-w-5xl min-w-0 flex-wrap items-end gap-x-7 gap-y-3 px-4 sm:px-5 py-3.5 sm:py-4 rounded-lg border border-white/10 bg-[#202321]/70 text-stone-100 shadow-md backdrop-blur-sm [color-scheme:dark]` : "flex min-h-0 min-w-0 flex-col overflow-hidden rounded-sm border border-white/30 bg-[#f5f3ee]/98 text-stone-800 shadow-xl [color-scheme:light]"}>
         {floatingInteraction && <svg aria-hidden="true" focusable="false" viewBox="0 0 200 80" preserveAspectRatio="none"
           className="pointer-events-none absolute top-12 right-full h-12 w-5 overflow-visible text-stone-100/65 sm:h-16 sm:w-16 lg:h-20 lg:w-[18vw]">
           <path d="M200 4 H145 L8 68" fill="none" stroke="currentColor" strokeWidth="1" vectorEffect="non-scaling-stroke" />
@@ -109,17 +110,17 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
           {questionProgress && <p aria-live="polite" aria-atomic="true" className={floatingInteraction ? "text-[10px] text-stone-300/80" : "text-xs text-stone-300"}><span className="sr-only">Pregunta {questionProgress.current} de {questionProgress.total}</span><span aria-hidden="true" className="tracking-widest tabular-nums">{String(questionProgress.current).padStart(2, "0")} / {String(questionProgress.total).padStart(2, "0")}</span></p>}
           <p className={immersive ? "sr-only" : "text-xs text-stone-600"}>* Campo obligatorio.</p>
         </div>
-        <div key={groupId} className={questions[0]?.id === "nombre" ? "grid min-w-0 basis-full gap-3 sm:flex-1 sm:basis-72 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_auto]" : floatingInteraction ? "min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain p-1 wrap-anywhere [&_legend]:text-xs [&_label]:text-xs" : immersive ? `min-w-0 basis-full space-y-3 wrap-anywhere sm:flex-1 sm:basis-72 ${questions[0]?.type === "scale" ? "max-h-[calc(100dvh-14rem)] overflow-y-auto overscroll-contain p-1" : ""}` : "min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 py-5 wrap-anywhere sm:px-6"}>
+        <div data-question-body key={groupId} className={questions[0]?.id === "nombre" ? "grid min-w-0 basis-full gap-3 sm:flex-1 sm:basis-72 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_auto]" : floatingInteraction ? "min-h-0 min-w-0 space-y-4 overflow-y-auto overscroll-contain p-1 wrap-anywhere [&_legend]:text-xs [&_label]:text-xs" : immersive ? `min-w-0 basis-full space-y-3 wrap-anywhere sm:flex-1 sm:basis-72 ${questions[0]?.type === "scale" ? "max-h-[calc(100dvh-14rem)] overflow-y-auto overscroll-contain p-1" : ""}` : "min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain px-5 py-5 wrap-anywhere sm:px-6"}>
           {(floatingInteraction ? questions.slice(0, 1) : questions).map((question) => (
             <QuestionRenderer key={question.id} question={question} value={answers[question.id]} variant={scene.visualVariant} layout={immersive ? "dock" : undefined} refinedScale={question.id === floatingInteraction?.id}
               onChange={(value) => onAnswerChange(question.id, value)} />
           ))}
         </div>
-        <div className={floatingInteraction ? "w-full shrink-0 border-t border-white/10 pt-2 pb-[env(safe-area-inset-bottom)] [&_button]:px-3 [&_button]:text-xs [&_nav]:justify-between" : immersive ? "ml-auto w-full shrink-0 pb-[env(safe-area-inset-bottom)] sm:w-auto" : "shrink-0 border-t border-stone-300/70 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6"}>
+        <div data-question-nav className={floatingInteraction ? "w-full shrink-0 border-t border-white/10 pt-2 pb-[env(safe-area-inset-bottom)] [&_button]:px-3 [&_button]:text-xs [&_nav]:justify-between" : immersive ? "ml-auto w-full shrink-0 pb-[env(safe-area-inset-bottom)] sm:w-auto" : "shrink-0 border-t border-stone-300/70 px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-6"}>
           {navigation}
         </div>
       </div>
-      {floatingInteraction && questions.length > 1 && <div className={`${styles.card} ${styles.dependent} ${designMoment ? `${designStyles.secondary} ${designStyles.choices}` : ""}`}>
+      {floatingInteraction && questions.length > 1 && <div data-dependent-panel className={`${styles.card} ${styles.dependent} ${designMoment ? `${designStyles.secondary} ${designStyles.choices}` : ""}`}>
         {questions.slice(1).map((question) => (
           question.id === thermalQuestion?.id && question.type === "multi-choice" ?
           <ThermalPreferenceControl key={question.id} question={question} value={answers[question.id]}

@@ -22,16 +22,16 @@ export function ExperienceQuestionCards({ questions, answers, onChange, navigati
   const wide = primary.type === "textarea" || (primary.type === "single-choice" && primary.options.some((option) => option.label.length > 90));
   const render = (question: Question) => <QuestionRenderer key={question.id} question={question} value={answers[question.id]}
     variant="immersive" layout="dock" refinedScale={question.type === "scale"} onChange={(value) => onChange(question.id, value)} />;
-  return <div className={`${styles.composition} ${anchor === "left" ? styles.left : ""} ${many ? styles.expandedDock : ""}`}>
-    <div className={`${styles.card} ${styles.primary} ${wide ? styles.wide : ""}`}>
+  return <div data-card-composition className={`${styles.composition} ${anchor === "left" ? styles.left : ""} ${many ? styles.expandedDock : ""}`}>
+    <div data-question-panel className={`${styles.card} ${styles.primary} ${wide ? styles.wide : ""}`}>
       {progress && <p className={styles.progress} aria-live="polite">{String(progress.current).padStart(2, "0")} / {String(progress.total).padStart(2, "0")}</p>}
-      <div className={styles.body}>
+      <div data-question-body className={styles.body}>
         {render(primary)}
         {inline.map(render)}
         {extraContent}
       </div>
-      <div className={styles.navigation}>{navigation}</div>
+      <div data-question-nav className={styles.navigation}>{navigation}</div>
     </div>
-    {secondary.length > 0 && <div className={`${styles.card} ${styles.secondary}`}>{secondary.map(render)}</div>}
+    {secondary.length > 0 && <div data-dependent-panel className={`${styles.card} ${styles.secondary}`}>{secondary.map(render)}</div>}
   </div>;
 }

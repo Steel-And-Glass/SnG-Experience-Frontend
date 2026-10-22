@@ -11,6 +11,8 @@ if (mediaBaseUrl) {
     if (url.protocol === "https:" || url.protocol === "http:") {
       remotePatterns.push({ protocol: url.protocol === "https:" ? "https" : "http", hostname: url.hostname,
         port: url.port, pathname: `${url.pathname.replace(/\/+$/, "")}/experience/**`, search: "" });
+      remotePatterns.push({ protocol: url.protocol === "https:" ? "https" : "http", hostname: url.hostname,
+        port: url.port, pathname: `${url.pathname.replace(/\/+$/, "")}/website/**`, search: "" });
     }
   } catch {
     // An absent or malformed origin must not prevent loading the Next config.

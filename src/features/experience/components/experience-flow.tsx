@@ -1,5 +1,6 @@
 "use client";
 
+import responsive from "./experience-responsive.module.css";
 import { useRef, useState } from "react";
 import { buildExperienceSubmission, ExperienceSubmissionError } from "../submission/build-experience-submission";
 import { createExperienceSubmissionId, type ExperienceSubmissionDraft } from "../submission/experience-submission";
@@ -151,7 +152,7 @@ function ExperienceFlowContent() {
   }
 
   return (
-    <main lang="es" className={`${cardStyles.system} ${immersive ? "relative " : ""}isolate flex h-dvh w-full flex-col overflow-hidden bg-[#343b37] font-sans text-stone-100`}>
+    <main lang="es" className={`${responsive.viewport} ${cardStyles.system} ${immersive ? "relative " : ""}isolate flex h-dvh w-full flex-col overflow-hidden bg-[#343b37] font-sans text-stone-100`}>
       <header className={immersive ? "absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-5 py-3 text-shadow-sm text-shadow-black sm:px-8 lg:px-10" : "z-10 flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-white/15 px-5 py-4 sm:px-8 lg:px-10"}>
         <p className={immersive ? "text-sm font-normal tracking-[0.12em]" : "text-base font-medium tracking-wide"}>Steel &amp; Glass</p>
         <p aria-live="polite" aria-atomic="true" className="text-xs tracking-wide text-stone-200">

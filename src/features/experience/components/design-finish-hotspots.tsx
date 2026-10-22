@@ -48,7 +48,7 @@ export function DesignFinishHotspots({ question, value, onChange, progress, navi
         </button>;
       })}
     </div>
-    <div className={styles.panels}>
+    <div data-finish-panels className={styles.panels}>
       <div className={styles.card}>
         {progress && <p className={styles.progress}>{String(progress.current).padStart(2, "0")} / {String(progress.total).padStart(2, "0")}</p>}
         <h2 id={`${id}-question`}>{question.text}{question.required && <><span aria-hidden="true"> *</span><span className="sr-only"> (obligatorio)</span></>}</h2>
@@ -63,7 +63,7 @@ export function DesignFinishHotspots({ question, value, onChange, progress, navi
         {!fallback && deferred.map((option) => <button key={option.value} type="button" className={styles.defer}
           aria-pressed={value === option.value} onClick={() => onChange(option.value)}>{option.label}</button>)}
         <p role="status" className="sr-only">{label ? `Acabado seleccionado: ${label}` : "Sin respuesta."}</p>
-        <div className={styles.navigation}>{navigation}</div>
+        <div data-question-nav className={styles.navigation}>{navigation}</div>
       </div>
       {children && <div className={styles.card}>{children}</div>}
     </div>
