@@ -1,4 +1,6 @@
 .documents { display: grid; gap: .5rem; min-width: 0; }
+.ideaPhoto { margin-top: .5rem; padding-top: .75rem; border-top: 1px solid rgb(255 255 255 / 15%); }
+.ideaPhoto h3 { font-size: 13px; font-weight: 600; }
 .dropzone { display: grid; gap: .35rem; padding: .75rem; border: 1px dashed rgb(255 255 255 / 35%); border-radius: 6px; background: rgb(255 255 255 / 4%); cursor: pointer; }
 .dropzone:focus-within { outline: 2px solid white; outline-offset: 3px; }
 .dropzone input { max-width: 100%; font-size: 11px; font-weight: 400; }

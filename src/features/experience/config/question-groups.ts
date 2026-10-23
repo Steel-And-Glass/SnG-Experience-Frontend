@@ -1,7 +1,7 @@
 import type { QuestionGroup } from "@/features/experience/types/question-group";
 
 export const questionGroups: readonly QuestionGroup[] = [
-  { id: "client-contact", sceneId: "exterior", order: 1, questionIds: ["asesor", "nombre", "documento_identificacion", "tipo_cliente", "wa"] },
+  { id: "client-contact", sceneId: "exterior", order: 1, questionIds: ["asesor", "nombre", "wa"] },
   { id: "project-identity", sceneId: "exterior", order: 2, questionIds: ["proyecto", "parcelacion", "lote", "ciudad"] },
   { id: "project-timing", sceneId: "recibidor", order: 1, questionIds: ["tiempo", "ventana_ejecucion"] },
   { id: "project-type", sceneId: "recibidor", order: 2, questionIds: ["tipo", "tipo_otro"] },

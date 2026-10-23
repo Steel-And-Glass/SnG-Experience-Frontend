@@ -1,4 +1,5 @@
 import type { ExperienceSubmissionDraft } from "./experience-submission";
+import { ideaPhotoError } from "./idea-photo-policy";
 import { PROJECT_DOCUMENT_REQUIRED, projectFilesError } from "./file-policy";
 
 const genericError = "No fue posible enviar tu proyecto. Verifica tu conexión e inténtalo nuevamente.";
@@ -8,6 +9,10 @@ export class ExperienceSubmitError extends Error {}
 export async function submitExperience(draft: ExperienceSubmissionDraft): Promise<void> {
   const fileError = projectFilesError(draft.files);
   if (fileError) throw new ExperienceSubmitError(fileError);
+  if (draft.ideaPhoto) {
+    const photoError = ideaPhotoError(draft.ideaPhoto);
+    if (photoError) throw new ExperienceSubmitError(photoError);
+  }
   if (draft.payload.files.length !== draft.files.length || draft.files.some((file, index) => {
     const metadata = draft.payload.files[index];
     return metadata.fileName !== file.name || metadata.contentType !== file.type || metadata.sizeBytes !== file.size;
@@ -18,6 +23,7 @@ export async function submitExperience(draft: ExperienceSubmissionDraft): Promis
   const formData = new FormData();
   formData.append("payload", JSON.stringify(draft.payload));
   for (const file of draft.files) formData.append("files", file);
+  if (draft.ideaPhoto) formData.append("ideaPhoto", draft.ideaPhoto);
 
   let response: Response;
   try {

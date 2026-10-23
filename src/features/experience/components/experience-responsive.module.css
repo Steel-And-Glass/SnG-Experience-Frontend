@@ -1,3 +1,32 @@
+/* Desktop readability without changing the mobile panel boundaries. */
+@media (min-width: 900px) and (min-height: 621px) {
+  .scene.scene [data-card-composition] {
+    --experience-primary-width: clamp(29rem, 34vw, 36rem);
+    --experience-secondary-width: 29rem;
+    --experience-card-padding: 1.375rem;
+    --experience-card-gap: 1rem;
+  }
+  .scene.scene [data-floating-panels] > [data-question-panel],
+  .scene.scene [data-floating-panels] > [data-dependent-panel],
+  .scene.scene [data-finish-panels] { width: clamp(29rem, 34vw, 36rem); }
+  .scene.scene [data-question-panel],
+  .scene.scene [data-dependent-panel],
+  .scene.scene [data-finish-panels] > div { padding: 1.375rem; }
+  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(legend, h2, label) {
+    font-size: 20px; line-height: 1.45;
+  }
+  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(p, small) {
+    font-size: 16px; line-height: 1.5;
+  }
+  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) label:has(input:is([type="radio"], [type="checkbox"])) {
+    min-height: 46px; font-size: 18px;
+  }
+  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(button, textarea, select) {
+    font-size: 17px;
+  }
+  .scene.scene [data-question-nav] button { min-height: 46px; padding: .625rem 1.125rem; }
+}
+
 /* Presentation only: shared mobile boundaries for the existing card variants. */
 @media (max-width: 899px), (max-height: 540px) and (max-width: 1100px) {
   .viewport { height: 100dvh; min-height: 0; }

@@ -29,6 +29,72 @@ function apiUrl(t) {
   t.after(() => { if (oldUrl === undefined) delete process.env.NEXT_PUBLIC_COTIZADOR_API_URL; else process.env.NEXT_PUBLIC_COTIZADOR_API_URL = oldUrl; });
 }
 
+test('contact group contains only advisor, name and WhatsApp', () => {
+  const { questionGroups } = require(`${root}/config/question-groups.ts`);
+  assert.deepEqual(questionGroups.find(g => g.id === 'client-contact').questionIds, ['asesor', 'nombre', 'wa']);
+  for (const id of ['documento_identificacion', 'tipo_cliente']) assert.equal(questions.some(q => q.id === id), false);
+});
+
+for (const [name, type] of [['idea.jpg', 'image/jpeg'], ['idea.jpeg', 'image/jpeg'], ['idea.png', 'image/png'], ['IDEA.PNG', '']]) {
+  test(`optional photo stays separate: ${name} / ${type}`, () => {
+    const photo = file(name, type);
+    const draft = buildExperienceSubmission({ submissionId: 'stable-id', answers: answers(), files: [file()], ideaPhoto: photo });
+    assert.equal(draft.ideaPhoto, photo);
+    assert.equal(draft.files.length, 1);
+    assert.equal(draft.payload.files.length, 1);
+    assert.equal(draft.payload.files[0].fileName, 'documento.pdf');
+    assert.equal('ideaPhoto' in draft.payload, false);
+    assert.equal(draft.payload.schemaVersion, 'sng-public-experience-v1');
+    assert.throws(() => buildExperienceSubmission({ submissionId: 'id', answers: answers(), files: [], ideaPhoto: photo }));
+  });
+}
+
+test('photo validation rejects extension, MIME, empty and oversized files', () => {
+  const { ideaPhotoError, MAX_IDEA_PHOTO_SIZE_BYTES } = require(`${root}/submission/idea-photo-policy.ts`);
+  for (const photo of [file('idea.pdf'), file('idea.webp', 'image/webp'), file('idea.heic', 'image/heic'), file('idea.svg', 'image/svg+xml'), file('idea.jpg', 'image/png'), new File([], 'idea.png', { type: 'image/png' })]) {
+    assert.ok(ideaPhotoError(photo));
+    assert.throws(() => buildExperienceSubmission({ submissionId: 'id', answers: answers(), files: [file()], ideaPhoto: photo }), e => e.field === 'ideaPhoto');
+  }
+  const large = new File([new Uint8Array(MAX_IDEA_PHOTO_SIZE_BYTES + 1)], 'idea.jpg', { type: 'image/jpeg' });
+  assert.ok(ideaPhotoError(large));
+  assert.throws(() => buildExperienceSubmission({ submissionId: 'id', answers: answers(), files: [file()], ideaPhoto: large }));
+  assert.equal(ideaPhotoError(new File([new Uint8Array(MAX_IDEA_PHOTO_SIZE_BYTES)], 'idea.png', { type: 'image/png' })), undefined);
+});
+
+test('photo multipart is optional and retry preserves the exact photo', async t => {
+  apiUrl(t);
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', async (_url, init) => {
+    requests.push(init.body);
+    if (requests.length === 2) throw new Error('uncertain network');
+    return new Response(JSON.stringify({ status: 'RECEIVED', submissionId: 'stable-id' }), { status: 201 });
+  });
+  const noPhoto = build([file()]);
+  assert.equal('ideaPhoto' in noPhoto, false);
+  await submitExperience(noPhoto);
+  assert.deepEqual([...requests[0].keys()], ['payload', 'files']);
+  const photo = file('idea.png', 'image/png');
+  const draft = buildExperienceSubmission({ submissionId: 'stable-id', answers: answers(), files: [file()], ideaPhoto: photo });
+  await assert.rejects(submitExperience(draft));
+  await submitExperience(draft);
+  for (const body of requests.slice(1)) {
+    assert.deepEqual([...body.keys()], ['payload', 'files', 'ideaPhoto']);
+    assert.equal(body.get('ideaPhoto'), photo);
+    assert.equal(body.getAll('files').length, 1);
+    const serialized = await new Request('http://test.invalid', { method: 'POST', body }).text();
+    assert.match(serialized, /name="ideaPhoto"/);
+  }
+  assert.equal(requests[1].get('payload'), requests[2].get('payload'));
+});
+
+test('invalid photo in a direct draft fails before network', async t => {
+  const fetch = t.mock.method(globalThis, 'fetch', () => assert.fail('must not fetch'));
+  const draft = build([file()]);
+  draft.ideaPhoto = file('idea.pdf');
+  await assert.rejects(submitExperience(draft), ExperienceSubmitError);
+  assert.equal(fetch.mock.callCount(), 0);
+});
+
 test('builder rejects zero documents without making notes required', () => {
   assert.throws(() => build([]), error => error instanceof ExperienceSubmissionError
     && error.field === 'files' && error.message === PROJECT_DOCUMENT_REQUIRED);

@@ -1,4 +1,5 @@
 import { questions } from "../config/questions";
+import { ideaPhotoError } from "./idea-photo-policy";
 import { isAnswerValid, isQuestionVisible } from "../types/question";
 import type { Answers, AnswerValue } from "../types/question";
 import { advisorCodeFor } from "./advisor-codes";
@@ -17,9 +18,10 @@ export interface BuildExperienceSubmissionInput {
   submissionId: string;
   answers: Answers;
   files: readonly File[];
+  ideaPhoto?: File;
 }
 
-export function buildExperienceSubmission({ submissionId, answers, files }: BuildExperienceSubmissionInput): ExperienceSubmissionDraft {
+export function buildExperienceSubmission({ submissionId, answers, files, ideaPhoto }: BuildExperienceSubmissionInput): ExperienceSubmissionDraft {
   if (typeof submissionId !== "string" || !submissionId.trim()) {
     throw new ExperienceSubmissionError("submissionId", "submissionId is required.");
   }
@@ -48,6 +50,10 @@ export function buildExperienceSubmission({ submissionId, answers, files }: Buil
   const fileError = projectFilesError(files);
   if (fileError) throw new ExperienceSubmissionError("files", fileError);
   const normalizedFiles = files.map(normalizeProjectFile);
+  if (ideaPhoto) {
+    const photoError = ideaPhotoError(ideaPhoto);
+    if (photoError) throw new ExperienceSubmissionError("ideaPhoto", photoError);
+  }
   return {
     payload: {
       submissionId,
@@ -64,5 +70,6 @@ export function buildExperienceSubmission({ submissionId, answers, files }: Buil
       files: normalizedFiles.map((file) => ({ fileName: file.name, contentType: file.type, sizeBytes: file.size })),
     },
     files: normalizedFiles,
+    ...(ideaPhoto ? { ideaPhoto } : {}),
   };
 }

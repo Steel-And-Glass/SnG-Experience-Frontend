@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { buildExperienceSubmission, ExperienceSubmissionError } from "../submission/build-experience-submission";
 import { createExperienceSubmissionId, type ExperienceSubmissionDraft } from "../submission/experience-submission";
 import { submitExperience, ExperienceSubmitError } from "../submission/submit-experience";
+import { IdeaPhotoUpload } from "./idea-photo-upload";
 import { ProjectDocuments } from "./project-documents";
 import cardStyles from "./experience-cards.module.css";
 import { useQuestionAudioEffect } from "@/features/experience/audio/use-question-audio-effect";
@@ -36,6 +37,7 @@ function ExperienceFlowContent() {
   const [currentGroupId, setCurrentGroupId] = useState(getSceneGroups(orderedScenes[0].id)[0].id);
   const [answers, setAnswers] = useState<Answers>({});
   const [projectFiles, setProjectFiles] = useState<File[]>([]);
+  const [ideaPhoto, setIdeaPhoto] = useState<File | null>(null);
   const [submissionState, setSubmissionState] = useState<"IDLE" | "SUBMITTING" | "SUCCESS" | "ERROR">("IDLE");
   const [submissionError, setSubmissionError] = useState("");
   const submissionDraft = useRef<ExperienceSubmissionDraft | null>(null);
@@ -118,12 +120,13 @@ function ExperienceFlowContent() {
     try {
       // Retain the exact payload and File objects after an uncertain network outcome.
       submissionDraft.current ??= buildExperienceSubmission({
-        submissionId: createExperienceSubmissionId(), answers, files: projectFiles,
+        submissionId: createExperienceSubmissionId(), answers, files: projectFiles, ideaPhoto: ideaPhoto ?? undefined,
       });
       await submitExperience(submissionDraft.current);
       setSubmissionState("SUCCESS");
     } catch (error) {
       setSubmissionError(error instanceof ExperienceSubmitError ? error.message
+        : error instanceof ExperienceSubmissionError && error.field === "ideaPhoto" ? error.message
         : error instanceof ExperienceSubmissionError ? "Revisa las respuestas obligatorias y los documentos antes de enviar tu proyecto."
         : "No fue posible enviar tu proyecto. Inténtalo nuevamente.");
       setSubmissionState("ERROR");
@@ -164,7 +167,7 @@ function ExperienceFlowContent() {
       </header>
       <ExperienceScene
         scene={currentScene}
-        extraContent={activeQuestion?.id === "project_documents" ? <ProjectDocuments files={projectFiles} onChange={setProjectFiles} /> : undefined}
+        extraContent={activeQuestion?.id === "project_documents" ? <><ProjectDocuments files={projectFiles} onChange={setProjectFiles} /><IdeaPhotoUpload photo={ideaPhoto} onChange={setIdeaPhoto} /></> : undefined}
         questions={visibleQuestions}
         answers={answers}
         onAnswerChange={handleAnswerChange}

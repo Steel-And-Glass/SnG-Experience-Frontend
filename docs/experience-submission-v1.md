@@ -1,5 +1,20 @@
 # Contrato público de Experience v1
 
+## Actualización: fotografía de idea opcional
+
+El flujo actual utiliza `POST /api/public/experience-submissions` con multipart:
+- `payload`: JSON del contrato público, sin cambios de schemaVersion.
+- `files`: planos/documentos requeridos, con los límites existentes.
+- `ideaPhoto`: una fotografía opcional JPG/JPEG/PNG, no vacía, de máximo 20 × 1024 × 1024 bytes, con MIME coherente si viene informado.
+
+`ideaPhoto` no forma parte de `projectFiles` ni de `payload.files`; tampoco cuenta dentro del límite de cinco documentos. UI, builder y transporte validan la fotografía por separado. El builder recibe `ideaPhoto?: File` y conserva el mismo File en el draft, sin mutarlo. Retry reutiliza ese draft; editar conserva la selección en React. Sin foto se mantienen únicamente `payload` y `files`.
+
+**TODO: Backend must explicitly accept and persist/process the optional `ideaPhoto` multipart part.** No se presupone que ya lo procese. La validación frontend no sustituye la validación de contenido en backend.
+
+La tarjeta de nombre vuelve a contener únicamente `nombre`; el grupo inicial sigue los pasos asesor, nombre y WhatsApp. `client` mantiene sus cuatro propiedades existentes.
+
+Las secciones siguientes describen el contrato base; las referencias históricas a ausencia de transporte/tests corresponden a su fase inicial. Actualmente existen transporte y pruebas Node en `tests/public-experience-submission.test.cjs`.
+
 Frontera de esta fase: `answers + File[] → buildExperienceSubmission → ExperienceSubmissionDraft`.
 No hay envío, almacenamiento, autenticación ni conexión al Cotizador. El builder todavía no está conectado al botón/tarjeta final.
 
@@ -40,6 +55,7 @@ interface ExperienceSubmission {
 interface ExperienceSubmissionDraft {
   payload: ExperienceSubmission;
   files: readonly File[];
+  ideaPhoto?: File;
 }
 ```
 
@@ -140,8 +156,6 @@ El array separado conserva los mismos objetos File y el mismo orden que la metad
   "answers": {
     "asesor": "Andrés Candela",
     "nombre": "Cliente Demo",
-    "documento_identificacion": "DEMO-123456",
-    "tipo_cliente": "persona",
     "wa": "3001234567",
     "proyecto": "Casa Demo",
     "ciudad": "Bucaramanga",
@@ -190,7 +204,3 @@ Experience no infiere líneas comerciales ni crea estas entidades. No implementa
 ## Verificación
 
 El proyecto no tiene runner de tests configurado; no se instala uno en esta fase. El builder está desacoplado de React y del navegador (salvo el generador UUID separado), por lo que puede probarse con inputs y archivos simulados, sin red.
-
-## Datos de identificación en la tarjeta de nombre
-
-`documento_identificacion` (texto obligatorio, conserva ceros iniciales) y `tipo_cliente` (selección obligatoria: `persona` o `empresa`) comparten el paso de `nombre` mediante `sameStepAs`. Se conservan en `answers`; no se añaden campos a `client` ni se altera el transporte.

@@ -22,6 +22,7 @@ export interface ExperienceSubmission {
 export interface ExperienceSubmissionDraft {
   payload: ExperienceSubmission;
   files: readonly File[];
+  ideaPhoto?: File;
 }
 
 // Generate once per logical submission, outside the pure builder; retain for retries.
