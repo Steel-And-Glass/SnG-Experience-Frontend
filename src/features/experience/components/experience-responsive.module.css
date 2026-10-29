@@ -1,30 +1,60 @@
-/* Desktop readability without changing the mobile panel boundaries. */
+/* Desktop typography must outrank the compact variants, including their :has()
+   selectors, regardless of the CSS module import order. Mobile stays separate. */
 @media (min-width: 900px) and (min-height: 621px) {
-  .scene.scene [data-card-composition] {
+  .scene.scene.scene [data-card-composition] {
     --experience-primary-width: clamp(29rem, 34vw, 36rem);
     --experience-secondary-width: 29rem;
     --experience-card-padding: 1.375rem;
     --experience-card-gap: 1rem;
   }
-  .scene.scene [data-floating-panels] > [data-question-panel],
-  .scene.scene [data-floating-panels] > [data-dependent-panel],
-  .scene.scene [data-finish-panels] { width: clamp(29rem, 34vw, 36rem); }
-  .scene.scene [data-question-panel],
-  .scene.scene [data-dependent-panel],
-  .scene.scene [data-finish-panels] > div { padding: 1.375rem; }
-  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(legend, h2, label) {
-    font-size: 20px; line-height: 1.45;
+  .scene.scene.scene [data-floating-panels] > [data-question-panel],
+  .scene.scene.scene [data-floating-panels] > [data-dependent-panel],
+  .scene.scene.scene [data-finish-panels] { width: clamp(29rem, 34vw, 36rem); }
+  .scene.scene.scene [data-question-panel],
+  .scene.scene.scene [data-dependent-panel],
+  .scene.scene.scene [data-finish-panels] > div { padding: 1.375rem; }
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(legend, h2, h3, label, p[id$="-label"]) {
+    font-size: 22px; line-height: 1.45;
   }
-  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(p, small) {
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(p, small) {
     font-size: 16px; line-height: 1.5;
   }
-  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) label:has(input:is([type="radio"], [type="checkbox"])) {
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) label:has(input:is([type="radio"], [type="checkbox"])) {
     min-height: 46px; font-size: 18px;
   }
-  .scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(button, textarea, select) {
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(button, textarea, select) {
     font-size: 17px;
   }
-  .scene.scene [data-question-nav] button { min-height: 46px; padding: .625rem 1.125rem; }
+  .scene.scene.scene [data-question-nav] button { min-height: 46px; padding: .625rem 1.125rem; }
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) :is(input:not([type="range"]), li, [role="option"]) {
+    font-size: 17px; line-height: 1.5;
+  }
+  .scene.scene.scene :is([data-question-panel], [data-dependent-panel], [data-finish-panels]) label > span > span,
+  .scene.scene.scene [role="option"] > span > span,
+  .scene.scene.scene [data-dependent-panel] input[type="range"] + div { font-size: 16px; line-height: 1.5; }
+  .scene.scene.scene :is([data-question-body], [data-dependent-panel]) > div { max-width: none; }
+  .scene.scene.scene [data-card-composition] > [data-question-panel] {
+    display: flex; flex-direction: column; max-height: calc(100dvh - max(7rem, 18dvh) - 2rem);
+  }
+  .scene.scene.scene [data-card-composition] [data-question-body] {
+    min-height: 0; overflow-y: auto; overscroll-behavior: contain;
+  }
+  .scene.scene.scene [data-question-nav] { flex-shrink: 0; }
+  /* Override the compact card label selectors and the slider's 10px utilities. */
+  .scene.scene.scene [data-question-panel] [data-scale-control] { max-width: none; }
+  .scene.scene.scene [data-question-panel] [data-scale-control] > label {
+    font-size: 22px; line-height: 1.4; margin-bottom: .75rem;
+  }
+  .scene.scene.scene [data-question-panel] [data-scale-control] > div {
+    font-size: 16px; line-height: 1.5;
+  }
+  .scene.scene.scene [data-question-panel] [data-scale-control] > input { height: 3.5rem; }
+  .scene.scene.scene [data-question-panel] [data-scale-control] > input::-webkit-slider-thumb {
+    width: 22px; height: 22px; margin-top: -10px;
+  }
+  .scene.scene.scene [data-question-panel] [data-scale-control] > input::-moz-range-thumb {
+    width: 20px; height: 20px;
+  }
 }
 
 /* Presentation only: shared mobile boundaries for the existing card variants. */

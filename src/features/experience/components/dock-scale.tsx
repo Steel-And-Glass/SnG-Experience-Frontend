@@ -13,7 +13,7 @@ export function DockScale({ question, value, onChange, refinedScale = false }: D
   const answered = typeof value === "number";
   const position = answered ? value : Math.round((question.min + question.max) / 2);
   const progress = answered ? (position - question.min) / (question.max - question.min || 1) * 100 : 0;
-  return <div className={refinedScale ? "max-w-md space-y-0.5" : "max-w-md space-y-1.5"}>
+  return <div data-scale-control className={refinedScale ? "max-w-md space-y-0.5" : "max-w-md space-y-1.5"}>
     <label htmlFor={id} className={refinedScale ? "mb-1.5 block text-[11px] font-medium leading-snug" : "block text-sm font-medium"}>{question.text}{question.required && <><span aria-hidden="true"> *</span><span className="sr-only"> (obligatorio)</span></>}</label>
     {question.description && <p id={`${id}-description`} className="text-[11px] leading-snug text-stone-300/85">{question.description}</p>}
     <div className={refinedScale ? "flex justify-between gap-4 text-[10px] leading-tight text-stone-300/80" : "flex justify-between gap-4 text-[11px] text-stone-300/85"}>
