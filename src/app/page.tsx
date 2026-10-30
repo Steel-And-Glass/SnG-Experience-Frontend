@@ -11,8 +11,8 @@ import { SiteFooter } from "@/features/home/components/site-footer";
 import styles from "@/features/home/home.module.css";
 
 export const metadata: Metadata = {
-  title: "Steel & Glass | Arquitectura en vidrio",
-  description: "Soluciones de vidrio y ventaner\u00eda que conectan arquitectura, paisaje y confort. Descubre Steel & Glass y vive nuestra experiencia guiada.",
+  title: "steel and glass | Arquitectura en vidrio",
+  description: "Soluciones de vidrio y ventaner\u00eda que conectan arquitectura, paisaje y confort. Descubre steel and glass y vive nuestra experiencia guiada.",
 };
 
 export default function Home() {

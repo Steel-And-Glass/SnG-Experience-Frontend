@@ -26,7 +26,7 @@ export function HomeHeader() {
     return () => document.removeEventListener("keydown", escape);
   }, [open]);
   return <header className={`${styles.header} ${scrolled || open ? styles.solidHeader : ""}`}>
-    <Link href="#inicio" className={styles.brand} onClick={() => setOpen(false)} aria-label="Steel & Glass — inicio">Steel <span>&</span> Glass<span className={styles.brandCaption}>ARQUITECTURA EN VIDRIO</span></Link>
+    <Link href="#inicio" className={styles.brand} onClick={() => setOpen(false)} aria-label="steel and glass — inicio">steel <span>and</span> glass<span className={styles.brandCaption}>ARQUITECTURA EN VIDRIO</span></Link>
     <nav aria-label="Navegación principal" className={styles.desktopNav}>
       {homeNavigation.map((item) => <Link key={item.href} href={item.href} prefetch={false}>{item.label}</Link>)}
     </nav>

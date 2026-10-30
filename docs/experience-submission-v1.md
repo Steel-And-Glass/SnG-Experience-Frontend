@@ -201,6 +201,18 @@ El array separado conserva los mismos objetos File y el mismo orden que la metad
 Ximena y la integración/backend decidirán el transporte y el mapping interno del Cotizador: Client.Id, Project.Id, PreQuote.Id, Requirement.Id, CommercialLine, storageKey, AI2, procesamiento, TechnicalProposal, autenticación backend y persistencia.
 Experience no infiere líneas comerciales ni crea estas entidades. No implementa endpoints, uploads remotos, R2 privado ni SnGConsulter. El cuestionario interno V4 permanece separado.
 
+## Acabado seleccionado
+
+`answers.preferencia_acabado` distingue las seis muestras: `madera`, `negro`,
+`blanco`, `champana`, `gris`, `color_especial`. La opción de asesoría conserva
+`con_sng`. Escritorio y selector móvil utilizan los mismos valores; ya no se envían
+las agrupaciones `madera_esp` y `blanco_gris`.
+
+Las imágenes existentes se reutilizan como previsualización y no determinan el valor
+enviado. El campo, endpoint y estructura del payload no cambian. El receptor desplegado
+debe aceptar estos valores; la prueba de transporte del frontend usa fetch simulado,
+no confirma aceptación en el backend real.
+
 ## Verificación
 
 El proyecto no tiene runner de tests configurado; no se instala uno en esta fase. El builder está desacoplado de React y del navegador (salvo el generador UUID separado), por lo que puede probarse con inputs y archivos simulados, sin red.

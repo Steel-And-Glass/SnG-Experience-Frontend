@@ -10,13 +10,13 @@ import { designImageForAnswer } from "../config/design-images";
 import { designEffect, designModes } from "../config/design-effects";
 import designStyles from "./design-aesthetic.module.css";
 import { securityEffect, securityModes } from "../config/security-effects";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ThermalPreferenceControl } from "./thermal-preference-control";
 import thermalStyles from "./thermal-preference.module.css";
 import { thermalEffect, thermalTone } from "../config/thermal-effects";
 import styles from "./floating-interaction.module.css";
 import type { ReactNode } from "react";
-import Image from "next/image";
+
 import type { ExperienceSceneConfig } from "@/features/experience/types/experience";
 import type { Answers, AnswerValue, Question, QuestionId } from "@/features/experience/types/question";
 import { QuestionRenderer } from "@/features/experience/components/question-renderer";
@@ -35,6 +35,17 @@ interface ExperienceSceneProps {
 
 export function ExperienceScene({ scene, questions, answers, onAnswerChange, groupId, groupProgress, questionProgress, navigation, extraContent }: ExperienceSceneProps) {
   useScenePrefetch(scene.id);
+  const sceneRoot = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const root = sceneRoot.current;
+    if (!root || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const panels = root.querySelectorAll<HTMLElement>("[data-question-body], [data-dependent-panel], [data-finish-panels] > div");
+    const animations = Array.from(panels, (panel) => panel.animate([
+      { opacity: 0, transform: "translateY(8px)" },
+      { opacity: 1, transform: "translateY(0)" },
+    ], { duration: 300, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }));
+    return () => animations.forEach((animation) => animation.cancel());
+  }, [scene.id, groupId]);
   const immersive = scene.visualVariant === "immersive";
   const normalizedCards = scene.id === "sala" || scene.id === "salida" ||
     (scene.id === "diseno" && ["uv", "funcionalidad"].includes(questions[0]?.id));
@@ -46,6 +57,15 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
   const floatingInteraction = immersive && (scene.id === "habitacion" || designMoment) && questions[0]?.type === "scale" ? questions[0] : undefined;
   const securityVisible = scene.id === securityEffect.sceneId && questions.some((question) => question.id === securityEffect.questionId);
   const activeSecurityModes = securityVisible ? securityModes(answers[securityEffect.questionId]) : [];
+  const overlayKey = [...activeSecurityModes, ...activeDesignModes].join("|");
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const overlays = sceneRoot.current?.querySelectorAll(":scope > svg") ?? [];
+    const animations = Array.from(overlays, (overlay) => overlay.animate([
+      { opacity: 0 }, { opacity: 1 },
+    ], { duration: 300, easing: "cubic-bezier(0.22, 1, 0.36, 1)" }));
+    return () => animations.forEach((animation) => animation.cancel());
+  }, [overlayKey]);
   const thermalQuestion = scene.id === thermalEffect.sceneId ? questions.find((question) => question.id === thermalEffect.questionId) : undefined;
   const [thermalPreview, setThermalPreview] = useState<{ answer: AnswerValue; tone: number }>();
   const thermalAnswer = answers[thermalEffect.questionId];
@@ -54,20 +74,14 @@ export function ExperienceScene({ scene, questions, answers, onAnswerChange, gro
       ? thermalPreview.tone : thermalTone(thermalAnswer)
     : 0;
   return (
-    <section data-scene={scene.id} aria-labelledby={immersive ? undefined : "scene-title"} aria-label={immersive ? scene.title : undefined} className={`${responsive.scene} ${floatingInteraction || finishQuestion ? "relative min-h-0 flex-1 overflow-hidden" : immersive ? "relative flex min-h-0 flex-1 items-end justify-center overflow-hidden px-3 pt-16 pb-2.5 sm:px-6 sm:pb-4 lg:px-10" : "relative grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,3fr)] gap-3 overflow-hidden px-3 pb-3 sm:px-6 sm:pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:grid-rows-1 lg:gap-10 lg:px-10 lg:py-8"}`}>
+    <section ref={sceneRoot} data-scene={scene.id} aria-labelledby={immersive ? undefined : "scene-title"} aria-label={immersive ? scene.title : undefined} className={`${responsive.scene} ${floatingInteraction || finishQuestion ? "relative min-h-0 flex-1 overflow-hidden" : immersive ? "relative flex min-h-0 flex-1 items-end justify-center overflow-hidden px-3 pt-16 pb-2.5 sm:px-6 sm:pb-4 lg:px-10" : "relative grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_minmax(0,3fr)] gap-3 overflow-hidden px-3 pb-3 sm:px-6 sm:pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:grid-rows-1 lg:gap-10 lg:px-10 lg:py-8"}`}>
       <div data-scene-visual aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#343b37]">
         {scene.backgroundImage ? (
           <div className={immersive ? "relative h-full w-full" : "relative h-[40%] w-full lg:h-full"}>
-            {scene.id === designEffect.sceneId ? <DesignSceneImage
-              activeImageSrc={finishQuestion ? finishImageForAnswer(answers[finishQuestionId]) : designImageForAnswer(answers[designEffect.questionId], designVisible)}
-            /> : <Image
-              src={scene.backgroundImage}
-              alt=""
-              fill
-              sizes="100vw"
-              preload={scene.id === "exterior"}
-              className="object-cover"
-            />}
+            <DesignSceneImage sceneId={scene.id} sceneOrder={scene.order}
+              activeImageSrc={scene.id === designEffect.sceneId
+                ? finishQuestion ? finishImageForAnswer(answers[finishQuestionId]) : designImageForAnswer(answers[designEffect.questionId], designVisible)
+                : scene.backgroundImage} />
           </div>
         ) : (
           <>

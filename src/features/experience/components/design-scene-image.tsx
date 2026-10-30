@@ -1,48 +1,59 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
-import { designNeutralImage } from "../config/design-images";
+import type { CSSProperties } from "react";
 import styles from "./design-scene-image.module.css";
 
-function IncomingImage({ src, onReady, onFailure }: {
-  src: string;
-  onReady: (src: string) => void;
-  onFailure: (src: string) => void;
-}) {
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    if (loaded) return;
-    const timeout = window.setTimeout(() => onFailure(src), 15000);
-    return () => window.clearTimeout(timeout);
-  }, [src, loaded, onFailure]);
+type Frame = { src: string; scene: string; order: number };
+type Transition = { frame: Frame; ready: boolean; variant: boolean };
 
-  return <Image src={src} alt="" fill sizes="100vw" loading="eager"
-    className={`${styles.image} ${loaded ? styles.enter : styles.pending}`}
-    onLoad={() => setLoaded(true)} onError={() => onFailure(src)}
-    onAnimationEnd={() => { if (loaded) onReady(src); }} />;
+function ImageLayer({ frame, transition, leaving, onLoad, onReady, onFailure }: {
+  frame: Frame; transition?: Transition; leaving: boolean;
+  onLoad: () => void; onReady: () => void; onFailure: (src: string) => void;
+}) {
+  const incoming = Boolean(transition);
+  const ready = transition?.ready ?? false;
+  useEffect(() => {
+    if (!incoming || ready) return;
+    const timeout = window.setTimeout(() => onFailure(frame.src), 15000);
+    return () => window.clearTimeout(timeout);
+  }, [frame.src, incoming, ready, onFailure]);
+  const animation = transition ? ready ? transition.variant ? styles.variantEnter : styles.enter : styles.pending
+    : leaving ? styles.variantLeave : "";
+  return <Image src={frame.src} alt="" fill sizes="100vw"
+    preload={!incoming && frame.scene === "exterior"} loading={incoming ? "eager" : undefined}
+    className={`${styles.image} ${animation}`}
+    onLoad={() => { if (incoming) onLoad(); }} onError={() => { if (incoming) onFailure(frame.src); }}
+    onAnimationEnd={() => { if (incoming && ready) onReady(); }} />;
 }
 
-// At most two layers: the last completed image stays opaque until its
-// replacement has loaded and finished fading in. No questionnaire state here.
-export function DesignSceneImage({ activeImageSrc }: { activeImageSrc: string }) {
-  const [current, setCurrent] = useState(designNeutralImage);
-  const [incoming, setIncoming] = useState<string | null>(null);
+// Two layers, with the latest request queued until the active fade completes.
+// Loading failures leave the last completed image visible.
+export function DesignSceneImage({ activeImageSrc, sceneId, sceneOrder }: {
+  activeImageSrc: string; sceneId: string; sceneOrder: number;
+}) {
+  const [current, setCurrent] = useState<Frame>({ src: activeImageSrc, scene: sceneId, order: sceneOrder });
+  const [incoming, setIncoming] = useState<Transition | null>(null);
   const [failed, setFailed] = useState<readonly string[]>([]);
-  const target = failed.includes(activeImageSrc) ? designNeutralImage : activeImageSrc;
-  // Lock the incoming layer until its fade completes. The latest prop is the
-  // pending request, so rapid clicks never unmount a partially visible image.
-  if (incoming === null && target !== current && !failed.includes(target)) setIncoming(target);
+  if (!incoming && activeImageSrc !== current.src && !failed.includes(activeImageSrc)) {
+    setIncoming({ frame: { src: activeImageSrc, scene: sceneId, order: sceneOrder }, ready: false,
+      variant: sceneId === "diseno" && current.scene === sceneId });
+  }
   const fail = useCallback((src: string) => {
     setFailed((previous) => previous.includes(src) ? previous : [...previous, src]);
-    setIncoming((previous) => previous === src ? null : previous);
+    setIncoming((previous) => previous?.frame.src === src ? null : previous);
   }, []);
-
-  return <>
-    <Image src={current} alt="" fill sizes="100vw" className={styles.image} />
-    {incoming !== null && <IncomingImage key={incoming} src={incoming} onFailure={fail}
-      onReady={(src) => {
-        if (src !== incoming) return;
-        setCurrent(src);
-        setIncoming(null);
-      }} />}
-  </>;
+  const motion = {
+    "--image-duration": incoming?.variant ? "650ms" : "700ms",
+  } as CSSProperties;
+  const crossfading = incoming?.variant && incoming.ready;
+  // Keep the incoming DOM image when it becomes current. Changing src on a
+  // different element at fade completion can expose another decode/paint.
+  const frames = incoming ? [current, incoming.frame] : [current];
+  return <div className={`${styles.layers} ${crossfading ? styles.crossfade : ""}`} style={motion}>
+    {frames.map(frame => <ImageLayer key={frame.src} frame={frame}
+      transition={incoming?.frame.src === frame.src ? incoming : undefined}
+      leaving={Boolean(crossfading && frame.src === current.src)} onFailure={fail}
+      onLoad={() => setIncoming((previous) => previous ? { ...previous, ready: true } : null)}
+      onReady={() => { if (incoming?.frame.src === frame.src) { setCurrent(frame); setIncoming(null); } }} />)}
+  </div>;
 }

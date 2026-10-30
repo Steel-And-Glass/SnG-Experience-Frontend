@@ -29,6 +29,27 @@ function apiUrl(t) {
   t.after(() => { if (oldUrl === undefined) delete process.env.NEXT_PUBLIC_COTIZADOR_API_URL; else process.env.NEXT_PUBLIC_COTIZADOR_API_URL = oldUrl; });
 }
 
+test('each finish is preserved independently in the actual multipart payload', async t => {
+  apiUrl(t);
+  const originalFetch = global.fetch;
+  t.after(() => { global.fetch = originalFetch; });
+  const values = ['madera', 'negro', 'blanco', 'champana', 'gris', 'color_especial', 'con_sng'];
+  assert.deepEqual(questions.find(q => q.id === 'preferencia_acabado').options.map(o => o.value), values);
+  for (const value of values) {
+    const draft = buildExperienceSubmission({ submissionId: 'finish-test', answers: { ...answers(), preferencia_acabado: value }, files: [file()] });
+    assert.equal(draft.payload.answers.preferencia_acabado, value);
+    global.fetch = async (_url, options) => {
+      const payload = JSON.parse(options.body.get('payload'));
+      assert.equal(payload.answers.preferencia_acabado, value);
+      return Response.json({ status: 'RECEIVED', submissionId: payload.submissionId });
+    };
+    await submitExperience(draft);
+  }
+  for (const oldValue of ['madera_esp', 'blanco_gris']) {
+    assert.throws(() => buildExperienceSubmission({ submissionId: 'finish-test', answers: { ...answers(), preferencia_acabado: oldValue }, files: [file()] }), e => e.field === 'preferencia_acabado');
+  }
+});
+
 test('contact group contains only advisor, name and WhatsApp', () => {
   const { questionGroups } = require(`${root}/config/question-groups.ts`);
   assert.deepEqual(questionGroups.find(g => g.id === 'client-contact').questionIds, ['asesor', 'nombre', 'wa']);
@@ -124,7 +145,7 @@ test('actual UI send handler returns before UUID, builder or SUBMITTING with no 
   assert.ok(body);
   const unexpected = () => assert.fail('No side effects allowed');
   const submitting = { current: false };
-  const dependencies = { submitting, submissionState: 'IDLE', projectFiles: [],
+  const dependencies = { submitting, receivedSubmission: { current: null }, submissionState: 'IDLE', projectFiles: [],
     setSubmissionState: unexpected, createExperienceSubmissionId: unexpected,
     buildExperienceSubmission: unexpected, submitExperience: unexpected };
   await new Function(...Object.keys(dependencies), `return async () => ${body}`)(...Object.values(dependencies))();

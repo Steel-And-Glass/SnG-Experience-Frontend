@@ -1,8 +1,20 @@
+﻿.layers { position: absolute; inset: 0; overflow: hidden; }
 .image { object-fit: cover; pointer-events: none; }
 .pending { opacity: 0; }
-.enter { animation: reveal 900ms cubic-bezier(0.45, 0, 0.55, 1) both; }
-@keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
+.enter { animation: reveal var(--image-duration) cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* Add complementary opacities in an isolated group to keep full coverage,
+   rather than exposing the backdrop halfway through the two-layer fade. */
+.crossfade { isolation: isolate; }
+.crossfade > .image { mix-blend-mode: plus-lighter; }
+.variantEnter { animation: blend var(--image-duration) ease-in-out both; }
+.variantLeave { animation: blendOut var(--image-duration) ease-in-out both; }
+@keyframes blend { from { opacity: 0; } to { opacity: 1; } }
+@keyframes blendOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes reveal {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
-  /* Keep the completion event so the old layer is still released. */
-  .enter { animation-duration: 1ms; }
+  /* Preserve completion events, without spatial motion. */
+  .enter, .variantEnter, .variantLeave { animation-duration: 1ms; }
 }

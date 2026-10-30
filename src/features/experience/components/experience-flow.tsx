@@ -6,6 +6,10 @@ import { buildExperienceSubmission, ExperienceSubmissionError } from "../submiss
 import { createExperienceSubmissionId, type ExperienceSubmissionDraft } from "../submission/experience-submission";
 import { submitExperience, ExperienceSubmitError } from "../submission/submit-experience";
 import { IdeaPhotoUpload } from "./idea-photo-upload";
+import { SchedulingCalendar, type SchedulingSelection } from "../scheduling/components/scheduling-calendar";
+import { ADVISOR_CODES, advisorCodeFor } from "../submission/advisor-codes";
+import { ExperienceSubmissionState } from "./experience-submission-state";
+import { schedulingMode } from "../scheduling/config/scheduling";
 import { ProjectDocuments } from "./project-documents";
 import cardStyles from "./experience-cards.module.css";
 import { useQuestionAudioEffect } from "@/features/experience/audio/use-question-audio-effect";
@@ -40,6 +44,11 @@ function ExperienceFlowContent() {
   const [ideaPhoto, setIdeaPhoto] = useState<File | null>(null);
   const [submissionState, setSubmissionState] = useState<"IDLE" | "SUBMITTING" | "SUCCESS" | "ERROR">("IDLE");
   const [submissionError, setSubmissionError] = useState("");
+  const [planning, setPlanning] = useState(false);
+  const [schedulingSelection, setSchedulingSelection] = useState<SchedulingSelection>({ date: "", slot: "" });
+  const [receivedId, setReceivedId] = useState<string | null>(null);
+  const [submissionLocked, setSubmissionLocked] = useState(false);
+  const receivedSubmission = useRef<string | null>(null);
   const submissionDraft = useRef<ExperienceSubmissionDraft | null>(null);
   const submitting = useRef(false);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
@@ -102,6 +111,7 @@ function ExperienceFlowContent() {
   }
 
   function handleAnswerChange(id: QuestionId, value: AnswerValue) {
+    if (id === "asesor" && value !== answers.asesor) setSchedulingSelection({ date: "", slot: "" });
     setAnswers((previous) => {
       const updated = { ...previous, [id]: value };
       for (const question of questions) {
@@ -114,16 +124,23 @@ function ExperienceFlowContent() {
   }
 
   async function sendProject() {
-    if (submitting.current || submissionState === "SUCCESS" || projectFiles.length === 0) return;
+    if (receivedSubmission.current) return receivedSubmission.current;
+    if (submitting.current || projectFiles.length === 0) return;
     submitting.current = true;
+    setSubmissionError("");
     setSubmissionState("SUBMITTING");
     try {
       // Retain the exact payload and File objects after an uncertain network outcome.
       submissionDraft.current ??= buildExperienceSubmission({
         submissionId: createExperienceSubmissionId(), answers, files: projectFiles, ideaPhoto: ideaPhoto ?? undefined,
       });
+      setSubmissionLocked(true);
       await submitExperience(submissionDraft.current);
+      const received = submissionDraft.current.payload;
+      receivedSubmission.current = received.submissionId;
+      setReceivedId(received.submissionId);
       setSubmissionState("SUCCESS");
+      return received.submissionId;
     } catch (error) {
       setSubmissionError(error instanceof ExperienceSubmitError ? error.message
         : error instanceof ExperienceSubmissionError && error.field === "ideaPhoto" ? error.message
@@ -135,29 +152,43 @@ function ExperienceFlowContent() {
     }
   }
 
+  function editProject() {
+    if (receivedSubmission.current || submitting.current) return;
+    submissionDraft.current = null;
+    setSubmissionLocked(false);
+    setSubmissionState("IDLE");
+    setSubmissionError("");
+    setPlanning(false);
+  }
+  const mode = schedulingMode(answers.sig_paso);
+  function continueToConfirmation() {
+    if (!canAdvance) return;
+    if (mode) setPlanning(true);
+    else void sendProject();
+  }
+  if (planning && mode) {
+    return <ExperienceSubmissionState state={receivedId ? "SUCCESS" : "PLANNING"} error=""
+      onRetry={() => { void sendProject(); }} onEdit={editProject}
+      agenda={<SchedulingCalendar context={{ mode, submissionId: receivedId ?? undefined,
+        advisorCode: advisorCodeFor(typeof answers.asesor === "string" ? answers.asesor : "") ?? "" }}
+        selection={schedulingSelection} onSelectionChange={setSchedulingSelection}
+        onRegisterProject={sendProject} projectError={submissionError} advisorLocked={submissionLocked}
+        onAdvisorChange={(code) => {
+          const advisor = Object.entries(ADVISOR_CODES).find(([, value]) => value === code)?.[0];
+          if (advisor) handleAnswerChange("asesor", advisor);
+        }} onBack={receivedId ? undefined : editProject}
+        onSkip={async () => { const id = await sendProject(); if (id) setPlanning(false); }} />} />;
+  }
+
   if (submissionState !== "IDLE") {
-    return <main lang="es" className="flex min-h-dvh flex-col bg-[#343b37] px-6 py-8 font-sans text-stone-100 sm:px-12">
-      <header className="text-sm">Steel &amp; Glass</header>
-      <section aria-live="polite" aria-atomic="true" aria-busy={submissionState === "SUBMITTING"} className="mx-auto my-auto w-full max-w-xl py-16">
-        <h1 className="text-2xl font-medium sm:text-3xl">{submissionState === "SUCCESS" ? "¡Hemos recibido tu proyecto!" : submissionState === "SUBMITTING" ? "Enviando tu proyecto..." : "No fue posible enviar tu proyecto"}</h1>
-        {submissionState === "SUCCESS" ? <>
-          <p className="mt-6 text-base leading-relaxed text-stone-200">Gracias por compartir la información y los documentos con Steel &amp; Glass. Nuestro equipo continuará con la revisión de tu proyecto.</p>
-          <p className="mt-4 text-sm leading-relaxed text-stone-300">Nos pondremos en contacto contigo para continuar el proceso.</p>
-        </> : submissionState === "ERROR" ? <>
-          <p role="alert" className="mt-6 text-sm leading-relaxed text-stone-200">{submissionError}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button type="button" onClick={sendProject} className={`${buttonClassName} bg-stone-100 text-stone-900`}>Reintentar</button>
-            <button type="button" onClick={() => { submissionDraft.current = null; setSubmissionState("IDLE"); }} className={`${buttonClassName} border border-white/30`}>Editar y preparar un nuevo envío</button>
-          </div>
-        </> : <p className="mt-6 text-sm text-stone-200">Estamos enviando la información y tus documentos.</p>}
-      </section>
-    </main>;
+    return <ExperienceSubmissionState state={submissionState} error={submissionError}
+      onRetry={() => { void sendProject(); }} onEdit={editProject} />;
   }
 
   return (
     <main lang="es" className={`${responsive.viewport} ${cardStyles.system} ${immersive ? "relative " : ""}isolate flex h-dvh w-full flex-col overflow-hidden bg-[#343b37] font-sans text-stone-100`}>
       <header className={immersive ? "absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-4 px-5 py-3 text-shadow-sm text-shadow-black sm:px-8 lg:px-10" : "z-10 flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-2 border-b border-white/15 px-5 py-4 sm:px-8 lg:px-10"}>
-        <p className={immersive ? "text-sm font-normal tracking-[0.12em]" : "text-base font-medium tracking-wide"}>Steel &amp; Glass</p>
+        <p className={immersive ? "text-sm font-normal tracking-[0.12em]" : "text-base font-medium tracking-wide"}>steel and glass</p>
         <p aria-live="polite" aria-atomic="true" className="text-xs tracking-wide text-stone-200">
           <span className={immersive ? "sr-only" : undefined}>Paso {currentIndex + 1} de {orderedScenes.length}</span>
           {immersive && <span aria-hidden="true" className="font-light tracking-[0.2em] tabular-nums">{String(currentIndex + 1).padStart(2, "0")} / {String(orderedScenes.length).padStart(2, "0")}</span>}
@@ -195,7 +226,7 @@ function ExperienceFlowContent() {
           Continuar{immersive && <span aria-hidden="true"> →</span>}
         </button>}
         {activeQuestion?.id === "project_documents" && <button type="button" disabled={!canAdvance}
-          onClick={sendProject} className={`${buttonClassName} bg-stone-800 text-stone-50 enabled:hover:bg-stone-700`}>Enviar proyecto</button>}
+          onClick={continueToConfirmation} className={`${buttonClassName} bg-stone-800 text-stone-50 enabled:hover:bg-stone-700`}>{mode ? "Continuar al agendamiento" : "Enviar proyecto"}</button>}
       </nav>
           </>
         }

@@ -32,7 +32,7 @@ export function DesignFinishHotspots({ question, value, onChange, progress, navi
   const selected = finishHotspots.find((spot) => spot.id === selectedId && spot.answerValue === value)
     ?? finishHotspots.find((spot) => spot.answerValue === value);
   const deferred = question.options.filter((option) => !finishHotspots.some((spot) => spot.answerValue === option.value));
-  const label = question.options.find((option) => option.value === value)?.label;
+  const label = !fallback && selected ? selected.label : question.options.find((option) => option.value === value)?.label;
 
   return <div ref={root} className={styles.root}>
     <div className={styles.hotspots} role="group" aria-labelledby={`${id}-question`}>
@@ -42,9 +42,9 @@ export function DesignFinishHotspots({ question, value, onChange, progress, navi
         return <button key={spot.id} type="button" hidden={fallback} className={styles.hotspot}
           style={{ left: geometry.x + spot.x * geometry.scale, top: geometry.y + spot.y * geometry.scale,
             width: spot.width * geometry.scale, height: spot.height * geometry.scale }}
-          aria-label={option.label} aria-pressed={selected?.id === spot.id}
+          aria-label={spot.label} aria-pressed={selected?.id === spot.id}
           onClick={() => { setSelectedId(spot.id); onChange(spot.answerValue); }}>
-          <span aria-hidden="true" className={styles.tooltip}>{option.label}</span>
+          <span aria-hidden="true" className={styles.tooltip}>{spot.label}</span>
         </button>;
       })}
     </div>

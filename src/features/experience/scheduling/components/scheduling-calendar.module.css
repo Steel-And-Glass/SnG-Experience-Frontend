@@ -1,0 +1,38 @@
+.scheduler { margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #eee7da30; min-width: 0; overflow-wrap: anywhere; }
+.scheduler h2 { font-size: clamp(27px, 3.2vw, 40px); font-weight: 400; letter-spacing: -.025em; line-height: 1.15; margin-bottom: 1rem; text-wrap: balance; }
+.scheduler p { margin-block: .75rem; font-size: 16px; line-height: 1.7; color: #d0d2c8; }
+.scheduler button { min-height: 44px; min-width: 0; padding: .5rem; border: 1px solid #eee7da30; border-radius: 2px; font-size: 16px; cursor: pointer; transition: background-color 180ms, color 180ms; }
+.scheduler button:hover:not(:disabled) { background: #ffffff12; }
+.scheduler button:focus-visible { outline: 2px solid #eee7da; outline-offset: 3px; }
+.scheduler button:disabled { opacity: .35; cursor: default; }
+.scheduler button[aria-pressed="true"] { background: #eee7da; color: #202321; box-shadow: inset 0 -3px #a8956d; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+.scheduler .notice { margin-bottom: 1.5rem; padding-left: .75rem; border-left: 1px solid #bca88080; font-size: 12px; color: #b9bdaf; }
+.scheduler .help { color: #d6d3d1; font-size: 14px; }
+.advisor { display: grid; gap: .5rem; margin-block: 1.5rem; font-size: 16px; }
+.advisor select { min-width: 0; width: 100%; min-height: 44px; padding: .75rem; background: #262d29; color: #efede5; border: 1px solid #eee7da40; font-size: 16px; }
+.advisor select:focus-visible { outline: 2px solid #c6b99b; outline-offset: 3px; }
+.month { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; text-align: center; gap: .5rem; margin: 1.5rem 0 1rem; }
+.month h3 { text-transform: capitalize; font-size: 18px; }
+.days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; text-align: center; }
+.days > span { padding-block: .5rem; font-size: 14px; color: #d6d3d1; }
+.days button { padding-inline: 0; border-color: transparent; }
+.hours { margin-top: 1.5rem; }
+.hours h3 { margin-bottom: .75rem; font-size: 17px; }
+.slots { display: grid; grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); gap: .5rem; }
+.summary { border-top: 1px solid #ffffff30; padding-top: 1rem; }
+.scheduler .confirm { width: 100%; margin-top: 1rem; background: #eee7da; color: #202321; }
+.scheduler .confirm:hover:not(:disabled) { background: #fff; }
+.scheduler .skip { display: block; margin: 1rem auto 0; border-color: transparent; text-decoration: underline; text-underline-offset: 4px; }
+.scheduler [role="alert"] { border-left: 1px solid #bca880; padding-left: 1rem; color: #ddd7c7; font-size: 14px; }
+.scheduler .eyebrow { font-size: 11px; letter-spacing: .15em; color: #c6b99b; margin-bottom: 1.5rem; }
+.appointment { margin-block: 2rem; border-top: 1px solid #eee7da30; }
+.appointment > div { display: grid; grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr); gap: 1rem; padding-block: 1rem; border-bottom: 1px solid #eee7da20; }
+.appointment dt { color: #b9bdaf; font-size: 13px; }
+.appointment dd { font-size: 17px; line-height: 1.5; }
+.homeLink { display: inline-flex; min-height: 44px; align-items: center; gap: 2rem; font-size: 15px; text-decoration: underline; text-underline-offset: 6px; }
+.homeLink:focus-visible { outline: 2px solid #eee7da; outline-offset: 5px; }
+.confirmed { animation: settle 320ms cubic-bezier(.22, 1, .36, 1); }
+.confirmed h2:focus { outline: none; }
+@keyframes settle { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 430px) { .appointment > div { grid-template-columns: minmax(0, 1fr); gap: .375rem; } }
+@media (prefers-reduced-motion: reduce) { .confirmed { animation: none; } .scheduler button { transition: none; } }

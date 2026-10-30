@@ -16,7 +16,7 @@ export const questions: readonly Question[] = [
   },
   {
     id: "asesor", sceneId: "exterior", order: 1, type: "single-choice", required: true,
-    text: "¿Quién es tu asesor en Steel and Glass?",
+    text: "¿Quién es tu asesor en steel and glass?",
     description: "Selecciona la persona que te compartió este diagnóstico. Tus resultados llegarán directamente a ella.",
     options: options([
       ["Andrés Candela", "Andrés Candela", "Ejecutivo Comercial"],
@@ -98,7 +98,7 @@ export const questions: readonly Question[] = [
   {
     id: "preferencia_acabado", sceneId: "diseno", order: 3, type: "single-choice", required: true,
     text: "¿Tienes alguna preferencia definida para el acabado de los perfiles? Selecciona la opcion que mas te agrade en nuestra paleta de colores ",
-    options: options([["negro", "Negro"], ["blanco_gris", "Blanco / gris / metálico"], ["madera_esp", "Madera o acabado especial"], ["con_sng", "Prefiero definirlo con SNG"]]),
+    options: options([["madera", "Madera"], ["negro", "Negro"], ["blanco", "Blanco"], ["champana", "Champaña"], ["gris", "Gris"], ["color_especial", "Color especial"], ["con_sng", "Prefiero definirlo con SNG"]]),
   },
   { ...scale, id: "funcionalidad", sceneId: "diseno", order: 4, text: "Facilidad y experiencia de uso" },
   {
